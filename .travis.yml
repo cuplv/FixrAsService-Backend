@@ -1,0 +1,23 @@
+language: scala
+scala:
+- 2.12.1
+jdk:
+- oraclejdk8
+script:
+- sbt clean coverage test
+after_success:
+- sbt coverageReport coveralls codacyCoverage
+
+#
+# Need to configure the variables below with travis encrypt
+#
+#notifications:
+#  slack:
+#    rooms:
+#    - secure:
+#    on_success: always
+#    on_failure: always
+#env:
+#  global:
+#  - secure:
+#  - secure:
