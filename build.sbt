@@ -36,7 +36,15 @@ lazy val root = (project in file(".")).
     // Dependencies
     libraryDependencies ++= Seq(
       scalaTest % Test,
-      scalaCheck % Test
+      scalaCheck % Test,
+      "com.typesafe.akka" %% "akka-http-core" % "10.0.4",
+      "com.typesafe.akka" %% "akka-http" % "10.0.4",
+      "com.typesafe.akka" %% "akka-http-testkit" % "10.0.4",
+      "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.4",
+      "com.typesafe.akka" %% "akka-http-jackson" % "10.0.4",
+      "com.typesafe.akka" %% "akka-http-xml" % "10.0.4",
+      "org.apache.solr" % "solr-solrj" % "6.4.1",
+      "com.google.code.gson" %  "gson" % "2.8.0"
     ),
 
     // Name
