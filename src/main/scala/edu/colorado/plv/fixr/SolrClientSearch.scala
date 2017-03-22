@@ -1,17 +1,23 @@
 package edu.colorado.plv.fixr
 
 import com.google.gson.Gson
+import com.typesafe.config.ConfigFactory
 import org.apache.solr.client.solrj.{SolrQuery, SolrServerException}
 import org.apache.solr.client.solrj.impl.{HttpSolrClient, XMLResponseParser}
 import org.apache.solr.client.solrj.response.QueryResponse
 import spray.json._
+
 
 /**
   * Created by chihwei on 3/21/17.
   */
 class SolrClientSearch {
 
-  val url = "http://192.12.243.133:8983/solr/fixr_delta"
+  val config = ConfigFactory.load("application.conf")
+  val url = config.getString("fixr.solr.url")
+  val collection_name = config.getString("fixr.solr.collection")
+  val url_final = url + collection_name
+  //val url = "http://192.12.243.133:8983/solr/fixr_delta"
 
   def findRecordWithKeyword(keyword: String): Option[String] = {
     try {
@@ -31,7 +37,7 @@ class SolrClientSearch {
 
   private def executeQuery(parameter: SolrQuery): Option[String] = {
     try {
-      val solrClient: HttpSolrClient = new HttpSolrClient.Builder(url).build()
+      val solrClient: HttpSolrClient = new HttpSolrClient.Builder(url_final).build()
       println("set up solrClient")
       solrClient.setParser(new XMLResponseParser());
       val response: QueryResponse = solrClient.query(parameter)
