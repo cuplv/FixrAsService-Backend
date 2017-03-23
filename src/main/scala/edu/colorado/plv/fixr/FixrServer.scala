@@ -42,7 +42,7 @@ object FixrServer {
                   case ex: Throwable =>
                     logger.error(ex, ex.getMessage)
                     HttpResponse(StatusCodes.InternalServerError,
-                      entity = "Error while persisting data")
+                      entity = "Error while querying data")
                 }
               }
             }
