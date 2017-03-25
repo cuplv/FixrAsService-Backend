@@ -6,12 +6,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
-import akka.util.Timeout
-
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
-import scala.util.{Failure, Success}
-import spray.json._
+import play.api.libs.json._
 
 import scala.io.StdIn
 
@@ -37,13 +32,36 @@ object FixrServer {
                 logger.info(queryStr)
                 try {
                   val solrResponse = new SolrClientSearch().findRecordWithKeyword(queryStr)
-                  solrResponse
+                  solrResponse match {
+                    case Some(json) =>
+                      if (json != Nil) {
+                        logger.info(s"Find list of github info")
+                        val searchResponse: JsObject = Json.obj("Tile" -> (Json.obj("Type" -> "Commit") ++ Json.obj("SrcsInfo" -> json)))
+                        val prettyjson = Json.prettyPrint(searchResponse.as[JsValue])
+                        HttpResponse(StatusCodes.OK, entity = s"$prettyjson")
+                      } else {
+                        HttpResponse(StatusCodes.OK, entity = s"No code pieces Found")
+                      }
+                    case None => HttpResponse(StatusCodes.InternalServerError,
+                      entity = s"Data is not fetched and something went wrong")
+                  }
                 }catch {
                   case ex: Throwable =>
                     logger.error(ex, ex.getMessage)
                     HttpResponse(StatusCodes.InternalServerError,
                       entity = "Error while querying data")
                 }
+              }
+            }
+          }
+        }
+      } ~ path("refine_query" / "commit") {
+        post {
+          entity(as[String]) {
+            queryStr => {
+              complete {
+                logger.info(queryStr)
+                "Connect!"
               }
             }
           }

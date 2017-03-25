@@ -5,7 +5,7 @@ import com.typesafe.config.ConfigFactory
 import org.apache.solr.client.solrj.{SolrQuery, SolrServerException}
 import org.apache.solr.client.solrj.impl.{HttpSolrClient, XMLResponseParser}
 import org.apache.solr.client.solrj.response.QueryResponse
-import spray.json._
+import play.api.libs.json.{JsValue, Json}
 
 
 /**
@@ -19,7 +19,7 @@ class SolrClientSearch {
   val url_final = url + collection_name
   //val url = "http://192.12.243.133:8983/solr/fixr_delta"
 
-  def findRecordWithKeyword(keyword: String): Option[String] = {
+  def findRecordWithKeyword(keyword: String): Option[JsValue] = {
     try {
       val parameter: SolrQuery = new SolrQuery()
       parameter.set("qt", "/select")
@@ -35,7 +35,7 @@ class SolrClientSearch {
     }
   }
 
-  private def executeQuery(parameter: SolrQuery): Option[String] = {
+  private def executeQuery(parameter: SolrQuery): Option[JsValue] = {
     try {
       val solrClient: HttpSolrClient = new HttpSolrClient.Builder(url_final).build()
       println("set up solrClient")
@@ -43,7 +43,7 @@ class SolrClientSearch {
       val response: QueryResponse = solrClient.query(parameter)
       val gson = new Gson()
       val result = gson.toJson(response)
-      val json = result.parseJson.prettyPrint
+      val json = Json.parse(result)
       //println(json)
       solrClient.close()
       Some(json)
