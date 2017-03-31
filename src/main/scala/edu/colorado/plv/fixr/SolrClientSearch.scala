@@ -17,7 +17,6 @@ class SolrClientSearch {
   val url = config.getString("fixr.solr.url")
   val collection_name = config.getString("fixr.solr.collection")
   val url_final = url + collection_name
-  //val url = "http://192.12.243.133:8983/solr/fixr_delta"
 
   def findRecordWithKeyword(keyword: String): Option[JsValue] = {
     try {
@@ -25,6 +24,23 @@ class SolrClientSearch {
       parameter.set("qt", "/select")
       parameter.set("indent", "on")
       parameter.set("q", "*:*")
+      parameter.set("fq", s"c_callsites_t:$keyword OR c_imports_added_t:$keyword OR c_imports_removed_t:$keyword")
+      parameter.set("wt", "json")
+      executeQuery(parameter)
+    } catch {
+      case solrServerException: SolrServerException =>
+        println("Solr Server Exception : " + solrServerException.getMessage)
+        None
+    }
+  }
+
+  def findRecordWithRepoName(username: String, reponame: String, commitHash: String, keyword: String): Option[JsValue] = {
+    try {
+      val repo = username + "/" + reponame
+      val parameter: SolrQuery = new SolrQuery()
+      parameter.set("qt", "/select")
+      parameter.set("indent", "on")
+      parameter.set("q", s"repo_sni=$repo AND c_hash_sni=$commitHash")
       parameter.set("fq", s"c_callsites_t:$keyword OR c_imports_added_t:$keyword OR c_imports_removed_t:$keyword")
       parameter.set("wt", "json")
       executeQuery(parameter)
