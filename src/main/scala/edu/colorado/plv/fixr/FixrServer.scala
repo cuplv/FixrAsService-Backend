@@ -62,20 +62,27 @@ object FixrServer {
           entity(as[String]) {
             queryStr => {
               complete {
-                logger.info(queryStr)
+                val queryJson = Json.parse(queryStr)
+                logger.info(Json.prettyPrint(queryJson))
+                val codePattern = (queryJson \ "Code").as[String]
+                val userName = (queryJson \ "UserName").as[String]
+                val repoName = (queryJson \ "RepoName").as[String]
+                val commit = (queryJson \ "CommitHash").as[String]
+                val srcFile = (queryJson \ "SrcFile").as[String]
                 try{
-                  val solrResponse = new SolrClientSearch().findRecordWithRepoName("chrisrhoden", "PlayerHater", "32d9e7db8bb4324c6638adea2e43a7cfbf173797", "startTransaction")
+                  val solrResponse = new SolrClientSearch().findRecordWithRepoName(userName , repoName, commit, codePattern, srcFile)
                   solrResponse match {
                     case Some(json) =>
                       if(json != Nil) {
                         logger.info(s"Find list of github info")
-                        val keyword = "startTransaction"
-                        val code = (json \ "_results" \\ "c_patch_t")
+                        print(Json.prettyPrint(json))
+                        val keyword = codePattern
+                        val code = (json \ "_results" \\ "p_patch_t")
                         var searchResponse: JsObject = Json.obj("Code" -> keyword)
                         var lineIndex = 0
                         var diff = new ListBuffer[ListBuffer[Int]]()
                         code(0).as[String].split("\n").foreach { line =>
-                          println(line)
+                          //println(line)
                           if (line.indexOf(keyword) > 0) {
                             val tmp = new ListBuffer[Int]
                             tmp += lineIndex

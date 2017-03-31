@@ -46,7 +46,8 @@ lazy val root = (project in file(".")).
       "com.typesafe.akka" %% "akka-http-xml" % "10.0.4",
       "org.apache.solr" % "solr-solrj" % "6.4.1",
       "com.google.code.gson" %  "gson" % "2.8.0",
-      "com.typesafe.play" %% "play-json" % "2.6.0-M3"
+      "com.typesafe.play" %% "play-json" % "2.6.0-M3",
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
     ),
 
     // Name

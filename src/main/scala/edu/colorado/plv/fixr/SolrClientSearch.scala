@@ -1,10 +1,10 @@
 package edu.colorado.plv.fixr
-
 import com.google.gson.Gson
 import com.typesafe.config.ConfigFactory
 import org.apache.solr.client.solrj.{SolrQuery, SolrServerException}
 import org.apache.solr.client.solrj.impl.{HttpSolrClient, XMLResponseParser}
 import org.apache.solr.client.solrj.response.QueryResponse
+import org.slf4j.LoggerFactory
 import play.api.libs.json.{JsValue, Json}
 
 
@@ -17,6 +17,7 @@ class SolrClientSearch {
   val url = config.getString("fixr.solr.url")
   val collection_name = config.getString("fixr.solr.collection")
   val url_final = url + collection_name
+  val logger = LoggerFactory.getLogger("SolrClient")
 
   def findRecordWithKeyword(keyword: String): Option[JsValue] = {
     try {
@@ -34,13 +35,13 @@ class SolrClientSearch {
     }
   }
 
-  def findRecordWithRepoName(username: String, reponame: String, commitHash: String, keyword: String): Option[JsValue] = {
+  def findRecordWithRepoName(username: String, reponame: String, commitHash: String, keyword: String, srcFile: String): Option[JsValue] = {
     try {
       val repo = username + "/" + reponame
       val parameter: SolrQuery = new SolrQuery()
       parameter.set("qt", "/select")
       parameter.set("indent", "on")
-      parameter.set("q", s"repo_sni=$repo AND c_hash_sni=$commitHash")
+      parameter.set("q", s"repo_sni=$repo AND c_hash_sni=$commitHash AND name_sni=$srcFile")
       parameter.set("fq", s"c_callsites_t:$keyword OR c_imports_added_t:$keyword OR c_imports_removed_t:$keyword")
       parameter.set("wt", "json")
       executeQuery(parameter)
