@@ -1,5 +1,7 @@
 package edu.colorado.plv.fixr
 
+import java.io.{File, PrintWriter}
+
 import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.Http
@@ -75,44 +77,13 @@ object FixrServer {
                     case Some(json) =>
                       if(json != Nil) {
                         logger.info(s"Find list of github info")
-                        print(Json.prettyPrint(json))
-                        val keyword = codePattern
-                        val code = (json \ "_results" \\ "p_patch_t")
-                        var searchResponse: JsObject = Json.obj("Code" -> keyword)
-                        var lineIndex = 0
-                        var diff = new ListBuffer[ListBuffer[Int]]()
-                        code(0).as[String].split("\n").foreach { line =>
-                          //println(line)
-                          if (line.indexOf(keyword) > 0) {
-                            val tmp = new ListBuffer[Int]
-                            tmp += lineIndex
-                            tmp += line.indexOf(keyword)
-                            tmp += line.indexOf(keyword) + keyword.length() - 1
-                            diff += tmp
-                          }
-                          lineIndex += 1
-                        }
-                        searchResponse ++= Json.obj("diffs" -> diff)
-                        /*val codes = new ListBuffer[ListBuffer[String]]()
-                        code.foreach{x =>
-                          val codeSection = new ListBuffer[String]()
-                          val diff = new ListBuffer[ListBuffer[Int]]()
-                          var lineIndex = 0
-                          x.as[String].split("\n").foreach{ line =>
-                            if(line.indexOf(keyword) > 0) {
-                              val tmp = new ListBuffer[Int]
-                              tmp += lineIndex
-                              tmp += line.indexOf(keyword)
-                              tmp += line.indexOf(keyword) + keyword.length() -1
-                              diff += tmp
-                            }
-                            lineIndex += 1
-                            codeSection += line
-                          }
-                          codes += codeSection
-                          searchResponse ++= Json.obj("diffs" -> diff)
-                        }*/
-                        val prettyjson = Json.prettyPrint(searchResponse.as[JsValue])
+                        /*val pw = new PrintWriter(new File("test.txt" ))
+                        pw.write(Json.prettyPrint(json))
+                        pw.close*/
+                        val javaCode = codePattern //only one line for now
+                        val info = new RefinementParser().getInfo(json, javaCode)
+
+                        val prettyjson = Json.prettyPrint(info.as[JsValue])
                         HttpResponse(StatusCodes.OK, entity = s"$prettyjson")
                       } else {
                         HttpResponse(StatusCodes.OK, entity = s"No code pieces Found")

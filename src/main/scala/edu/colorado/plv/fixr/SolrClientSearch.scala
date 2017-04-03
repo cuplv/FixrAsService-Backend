@@ -42,7 +42,7 @@ class SolrClientSearch {
       parameter.set("qt", "/select")
       parameter.set("indent", "on")
       parameter.set("q", s"repo_sni=$repo AND c_hash_sni=$commitHash AND name_sni=$srcFile")
-      parameter.set("fq", s"c_callsites_t:$keyword OR c_imports_added_t:$keyword OR c_imports_removed_t:$keyword")
+      parameter.set("fq", s"c_patch_t:$keyword")
       parameter.set("wt", "json")
       executeQuery(parameter)
     } catch {
@@ -56,7 +56,7 @@ class SolrClientSearch {
     try {
       val solrClient: HttpSolrClient = new HttpSolrClient.Builder(url_final).build()
       println("set up solrClient")
-      solrClient.setParser(new XMLResponseParser());
+      solrClient.setParser(new XMLResponseParser())
       val response: QueryResponse = solrClient.query(parameter)
       val gson = new Gson()
       val result = gson.toJson(response)
