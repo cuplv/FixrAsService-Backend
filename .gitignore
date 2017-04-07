@@ -21,3 +21,6 @@ project/plugins/project/
 
 # test
 test.txt
+
+# config
+application.conf

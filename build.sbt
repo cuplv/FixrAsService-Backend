@@ -47,7 +47,8 @@ lazy val root = (project in file(".")).
       "org.apache.solr" % "solr-solrj" % "6.4.1",
       "com.google.code.gson" %  "gson" % "2.8.0",
       "com.typesafe.play" %% "play-json" % "2.6.0-M3",
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
+      "org.mongodb.scala" %% "mongo-scala-driver" % "2.0.0"
     ),
 
     // Name

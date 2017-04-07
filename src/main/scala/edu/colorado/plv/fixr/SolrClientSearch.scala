@@ -7,6 +7,8 @@ import org.apache.solr.client.solrj.response.QueryResponse
 import org.slf4j.LoggerFactory
 import play.api.libs.json.{JsValue, Json}
 
+import scala.collection.mutable.ListBuffer
+
 
 /**
   * Created by chihwei on 3/21/17.
@@ -20,12 +22,13 @@ class SolrClientSearch {
   val logger = LoggerFactory.getLogger("SolrClient")
 
   def findRecordWithKeyword(keyword: String): Option[JsValue] = {
+    val fq = setFeildQuery(parseCode(keyword))
     try {
       val parameter: SolrQuery = new SolrQuery()
       parameter.set("qt", "/select")
       parameter.set("indent", "on")
       parameter.set("q", "*:*")
-      parameter.set("fq", s"c_callsites_t:$keyword OR c_imports_added_t:$keyword OR c_imports_removed_t:$keyword")
+      parameter.set("fq", fq)
       parameter.set("wt", "json")
       executeQuery(parameter)
     } catch {
@@ -69,6 +72,40 @@ class SolrClientSearch {
         println("Solr Server Exception : " + solrServerException.getMessage)
         None
     }
+  }
+
+  def parseCode(parsableCode: String): ListBuffer[String] ={
+    val codeBuffer = new ListBuffer[String]()
+
+    parsableCode.split("\n").foreach{ line =>
+
+      var newLine: String = line
+
+      if(newLine.contains(".")){
+        newLine = newLine.drop(newLine.indexOf(".")+1)
+      }
+
+      if(newLine.contains("(")){
+        newLine = newLine.dropRight(newLine.length - newLine.indexOf("("))
+      }
+
+      codeBuffer += newLine
+    }
+    codeBuffer
+  }
+
+  def setFeildQuery(codeBuffer: ListBuffer[String]): String = {
+    var c_callsites_t:String = ""
+    var imports_added_t: String = ""
+    var c_imports_removed_t: String = ""
+
+    codeBuffer.foreach{ code =>
+      c_callsites_t += "c_callsites_t:" + code + " AND "
+      imports_added_t += "imports_added_t:" + code + " AND "
+      c_imports_removed_t += "c_imports_removed_t:" + code + " AND "
+    }
+
+    "(" + c_callsites_t.dropRight(5) + ") OR (" + imports_added_t.dropRight(5) + ") OR (" + c_imports_removed_t.dropRight(5) + ")"
   }
 
 }

@@ -19,7 +19,7 @@ class RefinementParser {
 
 
     //get diffs and highlight index
-    val diffObj: JsObject= getDiffsAndHighlight(diffCode, javaCode)
+    val diffObj: JsObject= getDiffsAndHighlight(diffCode(0).as[String], javaCode)
     info ++= diffObj
 
     val featureObj: JsObject = getFeatures(callsiteCode, importCode, javaCode)
@@ -28,14 +28,14 @@ class RefinementParser {
     info
   }
 
-  def getDiffsAndHighlight(diffCode: Seq[JsValue], javaCode: String): JsObject = {
+  def getDiffsAndHighlight(diffCode: String, javaCode: String): JsObject = {
     val plus = new ListBuffer[Int]()
     val minus = new ListBuffer[Int]()
     var diffIndex = 0
     var contentIndex = 0;
     val highlight = new ListBuffer[ListBuffer[Int]]()
 
-    diffCode(0).as[String].split("\n").foreach{ line =>
+    diffCode.split("\n").foreach{ line =>
       //println(line)
       line.head match {
         case '+' => plus += diffIndex
@@ -45,7 +45,7 @@ class RefinementParser {
 
       if(line.contains(javaCode)){
         val highlightIndex = contentIndex + line.indexOf(javaCode)
-        highlight += ListBuffer(highlightIndex, highlightIndex + javaCode.length)
+        highlight += ListBuffer(highlightIndex, highlightIndex + javaCode.length -1)
       }
       diffIndex += 1
       contentIndex += (line.length + 1)
