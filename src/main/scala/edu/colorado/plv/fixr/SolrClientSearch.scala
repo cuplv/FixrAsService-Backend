@@ -64,7 +64,6 @@ class SolrClientSearch {
       val gson = new Gson()
       val result = gson.toJson(response)
       val json = Json.parse(result)
-      //println(json)
       solrClient.close()
       Some(json)
     } catch {

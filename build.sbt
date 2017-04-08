@@ -29,7 +29,7 @@ lazy val root = (project in file(".")).
       autoAPIMappings := true,
 
       organization := "edu.colorado.plv",
-      scalaVersion := "2.12.1",
+      scalaVersion := "2.12.0",
       version      := "0.1.0-SNAPSHOT"
     )),
 
@@ -48,7 +48,8 @@ lazy val root = (project in file(".")).
       "com.google.code.gson" %  "gson" % "2.8.0",
       "com.typesafe.play" %% "play-json" % "2.6.0-M3",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
-      "org.mongodb.scala" %% "mongo-scala-driver" % "2.0.0"
+      //"org.mongodb.scala" %% "mongo-scala-driver" % "2.0.0",
+      "org.mongodb" %% "casbah" % "3.1.1"
     ),
 
     // Name

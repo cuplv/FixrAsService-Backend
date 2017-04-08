@@ -10,9 +10,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import play.api.libs.json._
 
-import scala.collection.mutable.ListBuffer
 import scala.io.StdIn
-import scala.util.parsing.json.JSONObject
 
 /**
   * Created by chihwei on 3/21/17.
@@ -33,12 +31,17 @@ object FixrServer {
           entity(as[String]) {
             queryStr => {
               complete{
+                val queryJson = Json.parse(queryStr)
                 logger.info(queryStr)
+                val codePattern = (queryJson \ "Code").as[String]
                 try {
-                  val solrResponse = new SolrClientSearch().findRecordWithKeyword(queryStr)
+                  val solrResponse = new SolrClientSearch().findRecordWithKeyword(codePattern)
                   solrResponse match {
                     case Some(json) =>
                       if (json != Nil) {
+                        logger.info(s"Inserting to MongoDB")
+                        val dbResult = new MongoDBUtil().insertSolrData(json)
+                        logger.info(dbResult)
                         logger.info(s"Find list of github info")
                         val searchResponse: JsObject = Json.obj("Tile" -> (Json.obj("Type" -> "Commit") ++ Json.obj("SrcsInfo" -> json)))
                         val prettyjson = Json.prettyPrint(searchResponse.as[JsValue])
