@@ -21,13 +21,13 @@ class SolrClientSearchTest extends FlatSpec with Matchers{
     assert(result === ListBuffer("startTransaction"))
   }
 
-  it should "delete the characters appearing after the \"\\(\"" in {
+  it should "delete the characters appearing after the \"(\"" in {
     val code = "startTransaction(int a)"
     val result = new SolrClientSearch().parseCode(code)
     assert(result === ListBuffer("startTransaction"))
   }
 
-  it should "delete all the characters appearing before \".\" and after \"\\(\"" in {
+  it should "delete all the characters appearing before \".\" and after \"(\"" in {
     val code = "db.startTransaction(int a, int b)"
     val result = new SolrClientSearch().parseCode(code)
     assert(result === ListBuffer("startTransaction"))

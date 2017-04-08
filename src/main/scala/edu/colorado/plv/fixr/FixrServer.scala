@@ -75,15 +75,34 @@ object FixrServer {
                 val commit = (queryJson \ "CommitHash").as[String]
                 val srcFile = (queryJson \ "SrcFile").as[String]
                 try{
-                  val solrResponse = new SolrClientSearch().findRecordWithRepoName(userName , repoName, commit, codePattern, srcFile)
-                  solrResponse match {
+                  //val solrResponse = new SolrClientSearch().findRecordWithRepoName(userName , repoName, commit, codePattern, srcFile)
+                  val mongoQuery = new MongoDBUtil().findRecordWithId(userName, repoName, commit, srcFile)
+                  HttpResponse(StatusCodes.OK, entity = mongoQuery)
+                  if(mongoQuery == "invalid ID"){
+                    HttpResponse(StatusCodes.InternalServerError,
+                      entity = s"Data is not fetched and something went wrong")
+                  }
+                  else{
+                    val result = Json.parse(mongoQuery)
+                    logger.info(s"Find list of github info")
+                    /*val pw = new PrintWriter(new File("test.txt" ))
+                    pw.write(Json.prettyPrint(json))
+                    pw.close*/
+                    val javaCode = codePattern
+                    val infoList = new RefinementParser().getInfo(result, javaCode)
+                    val infoJson: JsObject = Json.obj("Result" -> infoList)
+                    val prettyjson = Json.prettyPrint(infoJson.as[JsValue])
+                    HttpResponse(StatusCodes.OK, entity = s"$prettyjson")
+                  }
+
+                  /*solrResponse match {
                     case Some(json) =>
                       if(json != Nil) {
                         logger.info(s"Find list of github info")
                         /*val pw = new PrintWriter(new File("test.txt" ))
                         pw.write(Json.prettyPrint(json))
                         pw.close*/
-                        val javaCode = codePattern //only one line for now
+                        val javaCode = codePattern
                         val info = new RefinementParser().getInfo(json, javaCode)
 
                         val prettyjson = Json.prettyPrint(info.as[JsValue])
@@ -93,7 +112,8 @@ object FixrServer {
                       }
                     case None => HttpResponse(StatusCodes.InternalServerError,
                       entity = s"Data is not fetched and something went wrong")
-                  }
+                  }*/
+
                 } catch {
                   case ex: Throwable =>
                     logger.error(ex, ex.getMessage)

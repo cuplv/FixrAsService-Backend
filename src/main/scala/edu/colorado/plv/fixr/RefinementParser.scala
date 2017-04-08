@@ -2,7 +2,7 @@ package edu.colorado.plv.fixr
 
 import javax.tools.JavaCompiler
 
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 
 import scala.collection.mutable.ListBuffer
 
@@ -11,21 +11,27 @@ import scala.collection.mutable.ListBuffer
   */
 class RefinementParser {
 
-  def getInfo(json: JsValue, javaCode:String): JsObject = {
-    var info: JsObject = Json.obj("Code" -> javaCode)
-    val diffCode = (json \ "_results" \\ "c_patch_t")
-    val callsiteCode = (json \ "_results" \\ "c_callsites_t")
-    val importCode = (json \ "_results" \\ "c_imports_t")
+  def getInfo(json: JsValue, javaCode: String): ListBuffer[JsObject] = {
+    //var info: JsObject = Json.obj("Code" -> javaCode)
+    val diffCode = (json \\ "c_patch_t")
+    val callsiteCode = (json \\ "c_callsites_t")
+    val importCode = (json \\ "c_imports_t")
+    val codeBuffer = parseCode(javaCode)
 
+    val infoList : ListBuffer[JsObject] = new ListBuffer[JsObject]
+    codeBuffer.foreach{ code =>
+      var info: JsObject = Json.obj("Code" -> code)
+      //get diffs and highlight index
+      val diffObj: JsObject = getDiffsAndHighlight(diffCode(0).as[String], javaCode)
+      info ++= diffObj
 
-    //get diffs and highlight index
-    val diffObj: JsObject= getDiffsAndHighlight(diffCode(0).as[String], javaCode)
-    info ++= diffObj
+      val featureObj: JsObject = getFeatures(callsiteCode, importCode, javaCode)
+      info ++= Json.obj("features" -> featureObj)
 
-    val featureObj: JsObject = getFeatures(callsiteCode, importCode, javaCode)
-    info ++= Json.obj("features" -> featureObj)
+      infoList += info
+    }
 
-    info
+    infoList
   }
 
   def getDiffsAndHighlight(diffCode: String, javaCode: String): JsObject = {
@@ -87,6 +93,29 @@ class RefinementParser {
       case "Import" =>
         val importFeature : JsObject = Json.obj("type" -> regionType, "region" -> imports)
         importFeature
+      case "Default" =>
+        val defaultFeature : JsObject = Json.obj("type" -> regionType, "region" -> ListBuffer[ListBuffer[Int]]())
+        defaultFeature
     }
+  }
+
+  def parseCode(parsableCode: String): ListBuffer[String] ={
+    val codeBuffer = new ListBuffer[String]()
+
+    parsableCode.split("\n").foreach{ line =>
+
+      var newLine: String = line
+
+      if(newLine.contains(".")){
+        newLine = newLine.drop(newLine.indexOf(".")+1)
+      }
+
+      if(newLine.contains("(")){
+        newLine = newLine.dropRight(newLine.length - newLine.indexOf("("))
+      }
+
+      codeBuffer += newLine
+    }
+    codeBuffer
   }
 }
