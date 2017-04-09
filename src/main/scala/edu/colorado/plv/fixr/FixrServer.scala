@@ -22,7 +22,6 @@ object FixrServer {
   // needed for the future flatMap/onComplete in the end
   implicit val executionContext = system.dispatcher
   val logger = Logging(system, getClass)
-  val ip = "192.12.243.131"
 
   def main(args: Array[String]) {
 
@@ -127,7 +126,7 @@ object FixrServer {
         }
       }
 
-    val bindingFuture = Http().bindAndHandle(route, ip, 8081)
+    val bindingFuture = Http().bindAndHandle(route, "localhost", 8081)
 
     println(s"Server online at http://localhost:8081/\nPress RETURN to stop...")
     StdIn.readLine() // let it run until user presses return
