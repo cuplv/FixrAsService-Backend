@@ -1,8 +1,7 @@
 package edu.colorado.plv.fixr
 
-import javax.tools.JavaCompiler
 
-import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 
 import scala.collection.mutable.ListBuffer
 
@@ -11,27 +10,22 @@ import scala.collection.mutable.ListBuffer
   */
 class RefinementParser {
 
-  def getInfo(json: JsValue, javaCode: String): ListBuffer[JsObject] = {
+  def getInfo(json: JsValue, javaCode: String): JsObject = {
     //var info: JsObject = Json.obj("Code" -> javaCode)
     val diffCode = (json \\ "c_patch_t")
     val callsiteCode = (json \\ "c_callsites_t")
     val importCode = (json \\ "c_imports_t")
     val codeBuffer = parseCode(javaCode)
 
-    val infoList : ListBuffer[JsObject] = new ListBuffer[JsObject]
-    codeBuffer.foreach{ code =>
-      var info: JsObject = Json.obj("Code" -> code)
-      //get diffs and highlight index
-      val diffObj: JsObject = getDiffsAndHighlight(diffCode(0).as[String], javaCode)
-      info ++= diffObj
+    var info: JsObject = Json.obj("Code" -> javaCode)
+    //get diffs and highlight index
+    val diffObj: JsObject = getDiffsAndHighlight(diffCode(0).as[String], javaCode)
+    info ++= diffObj
 
-      val featureObj: JsObject = getFeatures(callsiteCode, importCode, javaCode)
-      info ++= Json.obj("features" -> featureObj)
+    val featureObj: JsObject = getFeatures(callsiteCode, importCode, javaCode)
+    info ++= Json.obj("features" -> featureObj)
 
-      infoList += info
-    }
-
-    infoList
+    info
   }
 
   def getDiffsAndHighlight(diffCode: String, javaCode: String): JsObject = {
@@ -49,12 +43,17 @@ class RefinementParser {
         case _ => None
       }
 
-      if(line.contains(javaCode)){
-        val highlightIndex = contentIndex + line.indexOf(javaCode)
-        highlight += ListBuffer(highlightIndex, highlightIndex + javaCode.length -1)
+      val codeBuffer = parseCode(javaCode)
+      codeBuffer.foreach{ code =>
+        if(line.contains(code)){
+          //val highlightIndex = contentIndex + line.indexOf(javaCode)
+          //highlight += ListBuffer(highlightIndex, highlightIndex + javaCode.length -1)
+          highlight += ListBuffer(diffIndex, line.indexOf(code), line.indexOf(code)+code.length-1)
+        }
       }
+
       diffIndex += 1
-      contentIndex += (line.length + 1)
+      //contentIndex += (line.length + 1)
     }
     val diffs : JsObject = Json.obj("+" -> plus, "-" -> minus)
     Json.obj("diffs" -> diffs, "highlight" -> highlight)

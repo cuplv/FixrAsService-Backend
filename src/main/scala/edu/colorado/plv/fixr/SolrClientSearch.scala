@@ -95,16 +95,17 @@ class SolrClientSearch {
 
   def setFeildQuery(codeBuffer: ListBuffer[String]): String = {
     var c_callsites_t:String = ""
-    var imports_added_t: String = ""
-    var c_imports_removed_t: String = ""
+    var c_callsites_added_t: String = ""
+    var c_callsites_removed_t: String = ""
 
     codeBuffer.foreach{ code =>
-      c_callsites_t += "c_callsites_t:" + code + " AND "
-      imports_added_t += "imports_added_t:" + code + " AND "
-      c_imports_removed_t += "c_imports_removed_t:" + code + " AND "
+      //c_callsites_t += "c_callsites_t:" + code + " AND "
+      c_callsites_added_t += "c_callsites_added_t:" + code + " AND "
+      c_callsites_removed_t += "c_callsites_removed_t:" + code + " AND "
     }
 
-    "(" + c_callsites_t.dropRight(5) + ") OR (" + imports_added_t.dropRight(5) + ") OR (" + c_imports_removed_t.dropRight(5) + ")"
+    //"(" + c_callsites_t.dropRight(5) + ") OR (" + c_callsites_added_t.dropRight(5) + ") OR (" + c_callsites_removed_t.dropRight(5) + ")"
+    "(" + c_callsites_added_t.dropRight(5) + ") OR (" + c_callsites_removed_t.dropRight(5) + ")"
   }
 
 }

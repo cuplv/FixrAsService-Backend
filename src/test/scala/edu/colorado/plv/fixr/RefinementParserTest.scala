@@ -19,7 +19,7 @@ class RefinementParserTest extends FlatSpec with Matchers{
     val highlight = (testOutput \ "highlight")
     assert( (diff \ "+").as[ListBuffer[Int]] === ListBuffer(1))
     assert( (diff \ "-").as[ListBuffer[Int]] === ListBuffer(2))
-    assert( highlight.as[ListBuffer[ListBuffer[Int]]] === ListBuffer(ListBuffer(24,32)))
+    assert( highlight.as[ListBuffer[ListBuffer[Int]]] === ListBuffer(ListBuffer(1,14,22)))
   }
 
 }
