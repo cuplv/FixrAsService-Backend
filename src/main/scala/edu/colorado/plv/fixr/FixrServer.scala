@@ -7,6 +7,7 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.PathMatchers
 import akka.stream.ActorMaterializer
 import play.api.libs.json._
 
@@ -124,7 +125,42 @@ object FixrServer {
             }
           }
         }
+      } ~ path("compute" / "method" / "groums" ){
+        post{
+          entity(as[String]){
+            queryStr => {
+              complete{
+                logger.info("IN compute/method/groums")
+                val queryJson = Json.parse(queryStr)
+                logger.info(Json.prettyPrint(queryJson))
+                val user = (queryJson \ "user").as[String]
+                val repo = (queryJson \ "repo").as[String]
+                val className = (queryJson \ "class").as[String]
+                val method = (queryJson \ "method").as[String]
+                val hash = (queryJson \ "hash").asOpt[String]
+                val output = new GroumsService().searchGroums(user, repo, className, method, hash)
+                val prettyjson = Json.prettyPrint(output)
+                HttpResponse(StatusCodes.OK, entity = s"$prettyjson")
+              }
+            }
+          }
+        }
+      } ~ path("query" / "provenance" / "groums"){
+        get{
+          parameters('user.as[String], 'repo.as[String], 'class.as[String], 'method.as[String], 'hash.as[String]){
+            (user, repo, className, method, hash) =>
+            complete{
+              logger.info("IN query/provenance/groums")
+              logger.info(s"User: $user, Repo: $repo, Class: $className, Method: $method, Hash: $hash")
+              val output = new GroumsService().queryProvenance(user, repo, className, method, hash)
+              val prettyjson = Json.prettyPrint(output)
+              HttpResponse(StatusCodes.OK, entity = s"$prettyjson")
+            }
+          }
+
+        }
       }
+
 
     val bindingFuture = Http().bindAndHandle(route, "localhost", 8081)
 

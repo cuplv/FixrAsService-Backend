@@ -56,7 +56,7 @@ class RefinementParser {
       //contentIndex += (line.length + 1)
     }
     val diffs : JsObject = Json.obj("+" -> plus, "-" -> minus)
-    Json.obj("diffs" -> diffs, "highlight" -> highlight)
+    Json.obj("diffs" -> diffs, "QeuryHits" -> highlight)
   }
 
   def getFeatures(callsiteCode: Seq[JsValue], importCode: Seq[JsValue], javaCode: String): JsObject = {
