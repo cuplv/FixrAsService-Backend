@@ -16,7 +16,7 @@ class RefinementParserTest extends FlatSpec with Matchers{
     val testOutput: JsObject = new RefinementParser().getDiffsAndHighlight(testDiffs, testjavaCode)
     //print(Json.prettyPrint(testOutput.as[JsValue]))
     val diff = (testOutput \ "diffs" )
-    val highlight = (testOutput \ "highlight")
+    val highlight = (testOutput \ "QeuryHits")
     assert( (diff \ "+").as[ListBuffer[Int]] === ListBuffer(1))
     assert( (diff \ "-").as[ListBuffer[Int]] === ListBuffer(2))
     assert( highlight.as[ListBuffer[ListBuffer[Int]]] === ListBuffer(ListBuffer(1,14,22)))

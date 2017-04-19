@@ -42,6 +42,6 @@ class SolrClientSearchTest extends FlatSpec with Matchers{
   it should "generate correct field query" in {
     val codeBuffer = ListBuffer("startTransaction", "peekMediaPlayer")
     var result = new SolrClientSearch().setFeildQuery(codeBuffer)
-    assert(result === "(c_callsites_t:startTransaction AND c_callsites_t:peekMediaPlayer) OR (imports_added_t:startTransaction AND imports_added_t:peekMediaPlayer) OR (c_imports_removed_t:startTransaction AND c_imports_removed_t:peekMediaPlayer)")
+    assert(result === "(c_callsites_added_t:startTransaction AND c_callsites_added_t:peekMediaPlayer) OR (c_callsites_removed_t:startTransaction AND c_callsites_removed_t:peekMediaPlayer)")
   }
 }
