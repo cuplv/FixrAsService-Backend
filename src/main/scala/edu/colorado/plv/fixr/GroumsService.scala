@@ -15,7 +15,8 @@ class GroumsService {
       case None => groumKey = Json.obj("user" -> user, "repo" -> repo, "class" -> className, "method" -> method, "hash" -> "NONE")
     }
 
-    val path = "/path/path"
+    val currentDir = System.getProperty("user.dir")
+    val path = currentDir+"/src/main/resources/isol_1.dot"
     val groumPat: JsObject = Json.obj("groum" -> path, "provenance" -> List(groumKey, groumKey))
     val pattern: JsObject = Json.obj("weight" -> 10, "pattern" -> List(groumPat, groumPat))
 

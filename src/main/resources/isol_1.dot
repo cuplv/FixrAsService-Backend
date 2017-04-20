@@ -1,0 +1,28 @@
+digraph isoX {
+ node[shape=box,style="filled,rounded",penwidth=2.0,fontsize=13,]; 
+	 edge[ arrowhead=onormal,penwidth=2.0,]; 
+
+"n_7" [shape=ellipse,color=red,style=dashed,label="DataNode #7: android.graphics.Point  screenResolution"];
+"n_193" [shape=ellipse,color=red,style=dashed,label="DataNode #193: int  $i9"];
+"n_194" [ shape=box, style=filled, color=lightgray, label=" <get>.android.graphics.Point.y_int[#7]()"];
+"n_184" [shape=ellipse,color=red,style=dashed,label="DataNode #184: int  $i10"];
+"n_185" [ shape=box, style=filled, color=lightgray, label=" <get>.android.graphics.Point.x_int[#7]()"];
+"n_79" [shape=ellipse,color=red,style=dashed,label="DataNode #79: int  $i0"];
+"n_80" [ shape=box, style=filled, color=lightgray, label=" <get>.android.graphics.Point.x_int[#7]()"];
+"n_84" [shape=ellipse,color=red,style=dashed,label="DataNode #84: int  $i1"];
+"n_85" [ shape=box, style=filled, color=lightgray, label=" <get>.android.graphics.Point.y_int[#7]()"];
+"n_7" -> "n_185"[color=green, penwidth=2];
+"n_7" -> "n_85"[color=green, penwidth=2];
+"n_7" -> "n_80"[color=green, penwidth=2];
+"n_7" -> "n_194"[color=green, penwidth=2];
+"n_194" -> "n_194"[color=black, penwidth=3];
+"n_85" -> "n_185"[color=black, penwidth=3];
+"n_185" -> "n_194"[color=black, penwidth=3];
+"n_194" -> "n_185"[color=black, penwidth=3];
+"n_80" -> "n_85"[color=black, penwidth=3];
+"n_185" -> "n_185"[color=black, penwidth=3];
+"n_194" -> "n_193"[color=blue, penwidth=2];
+"n_185" -> "n_184"[color=blue, penwidth=2];
+"n_80" -> "n_79"[color=blue, penwidth=2];
+"n_85" -> "n_84"[color=blue, penwidth=2];
+ } 
