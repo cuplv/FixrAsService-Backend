@@ -6,15 +6,18 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) for information on our contribution p
 
 ## Deploy
 
-ubuntu@ec2-13-58-20-201.us-east-2.compute.amazonaws.com
+AWS: ec2-13-58-20-201.us-east-2.compute.amazonaws.com
 
 
 ## Run
 
+```
 cd cuplv
-cd FixrService-Backend/
-sbt run
 
+cd FixrService-Backend/
+
+sbt run
+```
 
 # Groums API
 
