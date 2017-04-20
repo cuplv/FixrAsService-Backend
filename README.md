@@ -19,7 +19,7 @@ cd FixrService-Backend/
 sbt run
 ```
 
-# Groums API
+## Groums API
 
 `POST /compute/method/groums`
 
