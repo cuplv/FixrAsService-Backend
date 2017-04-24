@@ -34,6 +34,7 @@ lazy val root = (project in file(".")).
     )),
 
     resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/",
+    resolvers += "jgit-repository" at "http://download.eclipse.org/jgit/maven",
 
     // Dependencies
     libraryDependencies ++= Seq(
@@ -49,7 +50,8 @@ lazy val root = (project in file(".")).
       "com.typesafe.play" %% "play-json" % "2.6.0-M3",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
       //"org.mongodb.scala" %% "mongo-scala-driver" % "2.0.0",
-      "org.mongodb" %% "casbah" % "3.1.1"
+      "org.mongodb" %% "casbah" % "3.1.1",
+      "org.eclipse.jgit" % "org.eclipse.jgit" % "4.6.0.201612231935-r"
     ),
 
     // Name
