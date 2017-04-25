@@ -133,11 +133,15 @@ object FixrServer {
                 logger.info("IN compute/method/groums")
                 val queryJson = Json.parse(queryStr)
                 logger.info(Json.prettyPrint(queryJson))
+
+                //parsing the json format
                 val user = (queryJson \ "user").as[String]
                 val repo = (queryJson \ "repo").as[String]
                 val className = (queryJson \ "class").as[String]
                 val method = (queryJson \ "method").as[String]
                 val hash = (queryJson \ "hash").asOpt[String]
+
+                //search groums
                 val output = new GroumsService().searchGroums(user, repo, className, method, hash)
                 val prettyjson = Json.prettyPrint(output)
                 HttpResponse(StatusCodes.OK, entity = s"$prettyjson")

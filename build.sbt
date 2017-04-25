@@ -51,7 +51,8 @@ lazy val root = (project in file(".")).
       "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
       //"org.mongodb.scala" %% "mongo-scala-driver" % "2.0.0",
       "org.mongodb" %% "casbah" % "3.1.1",
-      "org.eclipse.jgit" % "org.eclipse.jgit" % "4.6.0.201612231935-r"
+      "org.eclipse.jgit" % "org.eclipse.jgit" % "4.6.0.201612231935-r",
+      "org.scalaj" %% "scalaj-http" % "2.3.0"
     ),
 
     // Name
