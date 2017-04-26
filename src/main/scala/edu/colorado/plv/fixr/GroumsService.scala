@@ -57,14 +57,38 @@ class GroumsService {
           try{
             //get meta data from solr
             val patternStr = qeurySolrById(key.as[String], logger)
-            val patternJson = (Json.parse(patternStr) \ "doc").as[JsValue]
+            var patternJson = (Json.parse(patternStr) \ "doc")
 
-            //not sure if i need to reorganize groum/groumKey in the "pattern", or just include the raw data from solr
-            //Yue told me to use the format from Solr, so I set the result from Solr as "pattern"
-            val pattern: JsObject = Json.obj("weight" -> weight, "pattern" -> patternJson)
-            patternsList += pattern
+            if (patternJson.as[JsValue].toString() != "null") {
+              //not sure if i need to reorganize groum/groumKey in the "pattern", or just include the raw data from solr
+              //Yue told me to use the format from Solr, so I set the result from Solr as "pattern"
+
+              // logger.info(" Null not caught ")
+
+              val groum_keys = (patternJson \ "groum_keys_t").as[JsArray]
+              val groum_displays = groum_keys.value.map( key => {
+                val comps = key.toString().split("/")
+                Json.obj( "user" -> comps(0).drop(1), "repo" -> comps(1), "hash" -> comps(2), "class" -> comps(3), "method" -> comps(4).dropRight(1) )
+              } )
+
+              val patternInfo = Json.obj( "groum_key_info" -> Json.toJson( groum_displays )
+                                        , "groum_dot_sni" -> (patternJson \ "groum_dot_sni").as[JsValue]
+                                        , "type_sni"      -> (patternJson \ "type_sni").as[JsValue]
+                                        , "frequency_sni" -> (patternJson \ "frequency_sni").as[JsValue]
+                                        , "cluster_key_sni" -> (patternJson \ "cluster_key_sni").as[JsValue]  )
+
+              // val ext = Json.toJson( Map("groum_key_info" -> groum_displays) )
+              // (patternJson.as[JsObject] + ("groum_key_info" -> Json.toJson( groum_displays ) ))
+
+              val pattern: JsObject = Json.obj("weight" -> weight, "pattern" -> patternInfo , "key" -> key)
+              patternsList += pattern
+            } else {
+              // logger.info(" Null caught ")
+              // TODO: In debug mode, we should either 500 on this and report this.
+              // TODO: For non-debug mode, we should silently omit these out, but log the occurrence some where.
+            }
           }catch {
-            case ex: IOException => logger.error(s"Exception occurred while processing Solr response for ${key.as[String]}", ex.getMessage)
+            case ex: Exception => logger.error(s"Exception occurred while processing Solr response for ${key.as[String]}", ex.getMessage)
           }
       }
 
@@ -118,8 +142,10 @@ class GroumsService {
 
     logger.info(result)
 
-    println(Json.prettyPrint(Json.parse(result)))
-    Json.parse(result)
+    // println(Json.prettyPrint(Json.parse(result)))
+    val json = Json.parse(result)
+
+    json
   }
 
   def qeurySolrById(id: String, logger: LoggingAdapter): String = {
