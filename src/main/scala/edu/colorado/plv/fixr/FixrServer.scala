@@ -142,7 +142,7 @@ object FixrServer {
                 val hash = (queryJson \ "hash").asOpt[String]
 
                 //search groums
-                val output = new GroumsService().searchGroums(user, repo, className, method, hash)
+                val output = new GroumsService().searchGroums(user, repo, className, method, hash, logger)
                 val prettyjson = Json.prettyPrint(output)
                 HttpResponse(StatusCodes.OK, entity = s"$prettyjson")
               }

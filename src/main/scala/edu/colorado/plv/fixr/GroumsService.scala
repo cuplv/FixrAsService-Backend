@@ -2,6 +2,9 @@ package edu.colorado.plv.fixr
 
 import java.io.IOException
 
+import akka.event.Logging
+import akka.event.LoggingAdapter
+
 import com.typesafe.config.ConfigFactory
 import edu.colorado.plv.fixr.FixrServer.getClass
 import play.api.libs.json._
@@ -18,7 +21,7 @@ class GroumsService {
   val config = ConfigFactory.load("application.conf")
 
   // call by compute method route
-  def searchGroums(user: String, repo: String, className: String, method: String, hash: Option[String]): JsValue ={
+  def searchGroums(user: String, repo: String, className: String, method: String, hash: Option[String], logger: LoggingAdapter): JsValue ={
 
     //calling builder
     /*val githubRepo = new BuilderService().cloneRemoteRepository(user, repo)
@@ -30,13 +33,17 @@ class GroumsService {
     }
     */
 
+    logger.info("Initiating groums search")
+
     //get groum output
-    val groumOutput = queryGroumBlackBox(user, repo, method, hash)
+    val groumOutput = queryGroumBlackBox(user, repo, method, hash, logger)
     val result_code = (groumOutput \ "result_code").as[Int]
+
+    logger.info("Groums search completed")
 
     if(result_code != 0){
       //fail
-      groumOutput
+      return groumOutput
     }else{
 
       var patternsList :ListBuffer[JsObject] = new ListBuffer[JsObject]()
@@ -77,7 +84,7 @@ class GroumsService {
     result.as[JsValue]
   }
 
-  def queryGroumBlackBox(user: String, repo: String, method: String, hash: Option[String]): JsValue={
+  def queryGroumBlackBox(user: String, repo: String, method: String, hash: Option[String], logger: LoggingAdapter): JsValue={
 
     val FixrGraphPatternSearch = config.getString("fixr.groums.FixrGraphPatternSearch")
     val test_env_graph = config.getString("fixr.groums.test_env") + "graphs/"
@@ -86,12 +93,21 @@ class GroumsService {
     var result = ""
 
     //run Groum search command line
-    hash match {
-      case Some(hashcommit) =>
-        result = Seq("python", FixrGraphPatternSearch, "-d", test_env_graph, "-u", user, "-r", repo, "-z", hashcommit, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso).!!
-      case None =>
-        result = Seq("python", FixrGraphPatternSearch, "-d", test_env_graph, "-u", user, "-r", repo, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso).!!
+    try {
+      hash match {
+        case Some(hashcommit) =>
+          result = Seq("python", FixrGraphPatternSearch, "-d", test_env_graph, "-u", user, "-r", repo, "-z", hashcommit, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso).!!
+        case None =>
+          result = Seq("python", FixrGraphPatternSearch, "-d", test_env_graph, "-u", user, "-r", repo, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso).!!
+          // val cmd = Seq("python", FixrGraphPatternSearch, "-d", test_env_graph, "-u", user, "-r", repo, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso)
+          // logger.info("Running command: " + cmd.mkString(" "))
+          // result = cmd !!
+      }
+    } catch {
+       case ex: Exception => logger.error(s"Something bad happened: $ex", ex.getMessage)
     }
+
+    logger.info(result)
 
     println(Json.prettyPrint(Json.parse(result)))
     Json.parse(result)
