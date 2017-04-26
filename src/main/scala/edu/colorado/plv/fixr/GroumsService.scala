@@ -21,7 +21,7 @@ class GroumsService {
   val config = ConfigFactory.load("application.conf")
 
   // call by compute method route
-  def searchGroums(user: String, repo: String, className: String, method: String, hash: Option[String], logger: LoggingAdapter): JsValue ={
+  def searchGroums(user: String, repo: String, className: String, unqualified_method: String, hash: Option[String], logger: LoggingAdapter): JsValue ={
 
     //calling builder
     /*val githubRepo = new BuilderService().cloneRemoteRepository(user, repo)
@@ -32,6 +32,8 @@ class GroumsService {
       case None => println("fail to clone github repository")
     }
     */
+
+    val method = s"$className.$unqualified_method"
 
     logger.info("Initiating groums search")
 
