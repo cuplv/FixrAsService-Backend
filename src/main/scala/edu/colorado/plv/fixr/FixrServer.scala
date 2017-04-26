@@ -156,12 +156,22 @@ object FixrServer {
             complete{
               logger.info("IN query/provenance/groums")
               logger.info(s"User: $user, Repo: $repo, Class: $className, Method: $method, Hash: $hash")
-              val output = new GroumsService().queryProvenance(user, repo, className, method, hash)
+              val output = new GroumsService().queryProvenance(user, repo, className, method, hash, logger)
               val prettyjson = Json.prettyPrint(output)
               HttpResponse(StatusCodes.OK, entity = s"$prettyjson")
             }
           }
 
+        }
+      } ~ path("query" / "method" / "groums" ) {
+        parameters('user, 'repo, 'class, 'method, 'hash.?) {
+          (user, repo, className, method, hash) => {
+            complete {
+              val output = new GroumsService().searchGroums(user, repo, className, method, hash, logger)
+              val prettyjson = Json.prettyPrint(output)
+              HttpResponse(StatusCodes.OK, entity = s"$prettyjson")
+            }
+          }
         }
       }
 

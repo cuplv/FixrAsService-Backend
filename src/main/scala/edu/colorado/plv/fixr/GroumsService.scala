@@ -56,7 +56,7 @@ class GroumsService {
         case (weight, key) =>
           try{
             //get meta data from solr
-            val patternStr = qeurySolrById(key.as[String], logger)
+            val patternStr = querySolrById(key.as[String], logger)
             var patternJson = (Json.parse(patternStr) \ "doc")
 
             if (patternJson.as[JsValue].toString() != "null") {
@@ -105,9 +105,15 @@ class GroumsService {
   }
 
   //call by query provenance route
-  def queryProvenance(user: String, repo: String, className: String, method: String, hash: String): JsValue ={
+  def queryProvenance(user: String, repo: String, className: String, method: String, hash: String, logger: LoggingAdapter): JsValue ={
     val result: JsObject = Json.obj("groum" -> "some form of representation", "githubLink" -> "path/path")
     result.as[JsValue]
+
+    val id = s"$user/$repo/$hash/$className/$method"
+
+    val json = Json.parse( querySolrById(id, logger) ) \ "doc"
+
+    json.as[JsValue]
   }
 
   def queryGroumBlackBox(user: String, repo: String, method: String, hash: Option[String], logger: LoggingAdapter): JsValue={
@@ -148,7 +154,7 @@ class GroumsService {
     json
   }
 
-  def qeurySolrById(id: String, logger: LoggingAdapter): String = {
+  def querySolrById(id: String, logger: LoggingAdapter): String = {
     try {
       val url = config.getString("fixr.groums.solrURL")
       logger.info(s"Calling Solr at: $url?id=$id")
