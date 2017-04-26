@@ -56,7 +56,7 @@ class GroumsService {
         case (weight, key) =>
           try{
             //get meta data from solr
-            val patternStr = qeurySolrById(key.as[String])
+            val patternStr = qeurySolrById(key.as[String], logger)
             val patternJson = (Json.parse(patternStr) \ "doc").as[JsValue]
 
             //not sure if i need to reorganize groum/groumKey in the "pattern", or just include the raw data from solr
@@ -64,14 +64,16 @@ class GroumsService {
             val pattern: JsObject = Json.obj("weight" -> weight, "pattern" -> patternJson)
             patternsList += pattern
           }catch {
-            case ex: IOException =>
+            case ex: IOException => logger.error(s"Exception occurred while processing Solr response for ${key.as[String]}", ex.getMessage)
           }
       }
 
       //get cluster_id
-      val cluster_id = (patternsList(0) \ "pattern" \\ "cluster_key_sni")
+      // val cluster_id = (patternsList(0) \ "pattern" \\ "cluster_key_sni")
 
-      val result: JsObject = Json.obj("cluster_id" -> cluster_id(0), "patterns" -> patternsList)
+      // val result: JsObject = Json.obj("cluster_id" -> cluster_id(0), "patterns" -> patternsList)
+
+      val result: JsObject = Json.obj("patterns" -> patternsList)
       result.as[JsValue]
 
     }
@@ -86,19 +88,26 @@ class GroumsService {
 
   def queryGroumBlackBox(user: String, repo: String, method: String, hash: Option[String], logger: LoggingAdapter): JsValue={
 
-    val FixrGraphPatternSearch = config.getString("fixr.groums.FixrGraphPatternSearch")
-    val test_env_graph = config.getString("fixr.groums.test_env") + "graphs/"
-    val test_env_cluster = config.getString("fixr.groums.test_env") + "clusters"
-    val FixrGraphIso = config.getString("fixr.groums.FixrGraphIso")
+    val FixrGraphPatternSearchPY = config.getString("fixr.groums.FixrGraphPatternSearch") + "fixrsearch/search.py"
+    val test_env_graph = config.getString("fixr.groums.extractionRepo") + "graphs"
+    val test_env_cluster = config.getString("fixr.groums.extractionRepo") + "clusters"
+    val FixrGraphIso = config.getString("fixr.groums.FixrGraphIso") + "build/src/fixrgraphiso/fixrgraphiso"
     var result = ""
+
+    val ETPhoneHome = config.getBoolean("fixr.groums.ETPhoneHome")
+    var preCmd: Seq[String] = Seq()
+    if (ETPhoneHome) {
+       val GroumsServerAlias = config.getString("fixr.groums.GroumsServerAlias")
+       preCmd = Seq("ssh", GroumsServerAlias) ++ Seq("export", s"PYTHONPATH=${config.getString("fixr.groums.FixrGraph")}python:${config.getString("fixr.groums.FixrGraphPatternSearch")}",";")
+    }
 
     //run Groum search command line
     try {
       hash match {
         case Some(hashcommit) =>
-          result = Seq("python", FixrGraphPatternSearch, "-d", test_env_graph, "-u", user, "-r", repo, "-z", hashcommit, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso).!!
+          result = (preCmd ++ Seq("python", FixrGraphPatternSearchPY, "-d", test_env_graph, "-u", user, "-r", repo, "-z", hashcommit, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso) ) !!
         case None =>
-          result = Seq("python", FixrGraphPatternSearch, "-d", test_env_graph, "-u", user, "-r", repo, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso).!!
+          result = (preCmd ++ Seq("python", FixrGraphPatternSearchPY, "-d", test_env_graph, "-u", user, "-r", repo, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso)) !!
           // val cmd = Seq("python", FixrGraphPatternSearch, "-d", test_env_graph, "-u", user, "-r", repo, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso)
           // logger.info("Running command: " + cmd.mkString(" "))
           // result = cmd !!
@@ -113,10 +122,12 @@ class GroumsService {
     Json.parse(result)
   }
 
-  def qeurySolrById(id: String): String = {
+  def qeurySolrById(id: String, logger: LoggingAdapter): String = {
     try {
       val url = config.getString("fixr.groums.solrURL")
+      logger.info(s"Calling Solr at: $url?id=$id")
       val response: HttpResponse[String] = Http(url).param("id", id).timeout(connTimeoutMs = 1000, readTimeoutMs = 5000).asString
+      logger.info(s"Results: ${response.body}")
       response.body
     } catch {
       case ex: IOException => ex.asInstanceOf[String]
