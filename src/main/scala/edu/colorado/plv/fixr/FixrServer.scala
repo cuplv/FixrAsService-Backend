@@ -16,6 +16,9 @@ import scala.io.StdIn
 /**
   * Created by chihwei on 3/21/17.
   */
+
+// https://github.com/lomigmegard/akka-http-cors
+
 object FixrServer {
 
   implicit val system = ActorSystem("my-system")
@@ -164,12 +167,14 @@ object FixrServer {
 
         }
       } ~ path("query" / "method" / "groums" ) {
-        parameters('user, 'repo, 'class, 'method, 'hash.?) {
-          (user, repo, className, method, hash) => {
-            complete {
-              val output = new GroumsService().searchGroums(user, repo, className, method, hash, logger)
-              val prettyjson = Json.prettyPrint(output)
-              HttpResponse(StatusCodes.OK, entity = s"$prettyjson")
+        get {
+          parameters('user, 'repo, 'class, 'method, 'hash.?) {
+            (user, repo, className, method, hash) => {
+              complete {
+                val output = new GroumsService().searchGroums(user, repo, className, method, hash, logger)
+                val prettyjson = Json.prettyPrint(output)
+                HttpResponse(StatusCodes.OK, entity = s"$prettyjson")
+              }
             }
           }
         }
