@@ -50,12 +50,57 @@ class GroumsService {
 
       var patternsList :ListBuffer[JsObject] = new ListBuffer[JsObject]()
 
+      (groumOutput \ "patterns").as[JsArray].value.foreach {
+        case item => {
+           val weight = (item \ "obj_val").as[String]
+           val key = (item \ "pattern_key").as[String]
+           val iso = (item \ "iso_dot").as[String]
+           try{
+            //get meta data from solr
+            val patternStr = querySolrById(key, logger)
+            var patternJson = (Json.parse(patternStr) \ "doc")
+
+            if (patternJson.as[JsValue].toString() != "null") {
+              //not sure if i need to reorganize groum/groumKey in the "pattern", or just include the raw data from solr
+              //Yue told me to use the format from Solr, so I set the result from Solr as "pattern"
+
+              // logger.info(" Null not caught ")
+
+              val groum_keys = (patternJson \ "groum_keys_t").as[JsArray]
+              val groum_displays = groum_keys.value.map( key => {
+                val comps = key.toString().split("/")
+                Json.obj( "user" -> comps(0).drop(1), "repo" -> comps(1), "hash" -> comps(2), "class" -> comps(3), "method" -> comps(4).dropRight(1) )
+              } )
+
+              val patternInfo = Json.obj( "groum_key_info" -> Json.toJson( groum_displays )
+                , "groum_dot_sni" -> (patternJson \ "groum_dot_sni").as[JsValue]
+                , "type_sni"      -> (patternJson \ "type_sni").as[JsValue]
+                , "frequency_sni" -> (patternJson \ "frequency_sni").as[JsValue]
+                , "cluster_key_sni" -> (patternJson \ "cluster_key_sni").as[JsValue]  )
+
+              // val ext = Json.toJson( Map("groum_key_info" -> groum_displays) )
+              // (patternJson.as[JsObject] + ("groum_key_info" -> Json.toJson( groum_displays ) ))
+
+              val pattern: JsObject = Json.obj("weight" -> weight, "pattern" -> patternInfo , "key" -> key, "iso_dot" -> iso)
+              patternsList += pattern
+            } else {
+              // logger.info(" Null caught ")
+              // TODO: In debug mode, we should either 500 on this and report this.
+              // TODO: For non-debug mode, we should silently omit these out, but log the occurrence some where.
+            }
+           }catch {
+            case ex: Exception => logger.error(s"Exception occurred while processing Solr response for ${key}", ex.getMessage)
+           }
+        }
+      }
+
+      /*
       val weights = (groumOutput \ "patterns" \\ "obj_val")
       val keys = (groumOutput \ "patterns" \\ "pattern_key")
 
       //get weight and id, and use id to query Solr for groum pattern
       (weights zip keys).foreach{
-        case (weight, key) =>
+        case (weight, key, iso) =>
           try{
             //get meta data from solr
             val patternStr = querySolrById(key.as[String], logger)
@@ -92,7 +137,7 @@ class GroumsService {
           }catch {
             case ex: Exception => logger.error(s"Exception occurred while processing Solr response for ${key.as[String]}", ex.getMessage)
           }
-      }
+      } */
 
       //get cluster_id
       // val cluster_id = (patternsList(0) \ "pattern" \\ "cluster_key_sni")
@@ -135,15 +180,14 @@ class GroumsService {
 
     //run Groum search command line
     try {
-      hash match {
+      val cmd = hash match {
         case Some(hashcommit) =>
-          result = (preCmd ++ Seq("python", FixrGraphPatternSearchPY, "-d", test_env_graph, "-u", user, "-r", repo, "-z", hashcommit, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso) ) !!
+          preCmd ++ Seq("python", FixrGraphPatternSearchPY, "-d", test_env_graph, "-u", user, "-r", repo, "-z", hashcommit, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso)
         case None =>
-          result = (preCmd ++ Seq("python", FixrGraphPatternSearchPY, "-d", test_env_graph, "-u", user, "-r", repo, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso)) !!
-          // val cmd = Seq("python", FixrGraphPatternSearch, "-d", test_env_graph, "-u", user, "-r", repo, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso)
-          // logger.info("Running command: " + cmd.mkString(" "))
-          // result = cmd !!
+          preCmd ++ Seq("python", FixrGraphPatternSearchPY, "-d", test_env_graph, "-u", user, "-r", repo, "-m", method, "-c", test_env_cluster, "-i", FixrGraphIso)
       }
+      logger.info(s"Calling black box with command: ${cmd.mkString(" ")}")
+      result = cmd !!
     } catch {
        case ex: Exception => logger.error(s"Something bad happened: $ex", ex.getMessage)
     }
